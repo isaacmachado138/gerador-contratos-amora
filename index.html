@@ -615,6 +615,27 @@
                 const restante = total - entrada;
                 valorRestante.value = restante >= 0 ? restante.toFixed(2) : '0.00';
             }
+
+            function formatarDataInput(dataString) {
+                if (!dataString) return '';
+                const [ano, mes, dia] = dataString.split('-');
+                return `${dia}/${mes}/${ano}`;
+            }
+
+            function formatarDataAtual() {
+                const agora = new Date();
+                const dia = String(agora.getDate()).padStart(2, '0');
+                const mes = String(agora.getMonth() + 1).padStart(2, '0');
+                const ano = agora.getFullYear();
+                return `${dia}/${mes}/${ano}`;
+            }
+
+            function formatarDataParaInput(data) {
+                const dia = String(data.getDate()).padStart(2, '0');
+                const mes = String(data.getMonth() + 1).padStart(2, '0');
+                const ano = data.getFullYear();
+                return `${ano}-${mes}-${dia}`;
+            }
             
             function calcularEntrada30Porcento() {
                 const total = parseFloat(valorTotal.value) || 0;
@@ -662,16 +683,16 @@
                 const proximoDomingo = new Date(proximoSabado);
                 proximoDomingo.setDate(proximoSabado.getDate() + 1);
                 
-                document.getElementById('dataInicio').value = proximoSabado.toISOString().split('T')[0];
+                document.getElementById('dataInicio').value = formatarDataParaInput(proximoSabado);
                 document.getElementById('horaEntrada').value = '15:00';
-                document.getElementById('dataFim').value = proximoDomingo.toISOString().split('T')[0];
+                document.getElementById('dataFim').value = formatarDataParaInput(proximoDomingo);
                 document.getElementById('horaSaida').value = '14:00';
                 
                 // Valores e pagamento
                 document.getElementById('valorTotal').value = '800.00';
                 
                 // Data da entrada - hoje
-                document.getElementById('diaEntrada').value = hoje.toISOString().split('T')[0];
+                document.getElementById('diaEntrada').value = formatarDataParaInput(hoje);
                 
                 // Calcular 30% automaticamente
                 calcularEntrada30Porcento();
@@ -679,7 +700,7 @@
                 // Data de pagamento restante - um dia antes da entrada
                 const dataPagamento = new Date(proximoSabado);
                 dataPagamento.setDate(proximoSabado.getDate() - 1);
-                document.getElementById('dataPagamentoRestante').value = dataPagamento.toISOString().split('T')[0];
+                document.getElementById('dataPagamentoRestante').value = formatarDataParaInput(dataPagamento);
                 
                 // Observações
                 document.getElementById('observacoes').value = 'Cliente solicitou decoração especial para aniversário. Chegada de convidados prevista para as 16h.';
@@ -736,13 +757,13 @@
                 const diaEntradaValue = document.getElementById('diaEntrada').value;
                 const dataPagamentoRestanteValue = document.getElementById('dataPagamentoRestante').value;
                 
-                if (dataInicio && dataFim && new Date(dataInicio) > new Date(dataFim)) {
+                if (dataInicio && dataFim && dataInicio > dataFim) {
                     alert('⚠️ A data de início não pode ser posterior à data de fim!');
                     isValid = false;
                 }
                 
                 // Validação: data de pagamento restante deve ser antes ou igual à data de entrada na acomodação
-                if (dataPagamentoRestanteValue && dataInicio && new Date(dataPagamentoRestanteValue) > new Date(dataInicio)) {
+                if (dataPagamentoRestanteValue && dataInicio && dataPagamentoRestanteValue > dataInicio) {
                     alert('⚠️ A data de pagamento do valor restante deve ser antes ou igual à data de entrada na acomodação!');
                     isValid = false;
                 }
@@ -797,8 +818,8 @@
                 `;
                 
                 // Dados da reserva
-                const dataInicio = new Date(formData.get('dataInicio')).toLocaleDateString('pt-BR');
-                const dataFim = new Date(formData.get('dataFim')).toLocaleDateString('pt-BR');
+                const dataInicio = formatarDataInput(formData.get('dataInicio'));
+                const dataFim = formatarDataInput(formData.get('dataFim'));
                 const horaEntrada = formData.get('horaEntrada');
                 const horaSaida = formData.get('horaSaida');
                 
@@ -825,8 +846,8 @@
                 `;
                 
                 // Valores e pagamento
-                const diaEntrada = new Date(formData.get('diaEntrada')).toLocaleDateString('pt-BR');
-                const dataPagamentoRestante = new Date(formData.get('dataPagamentoRestante')).toLocaleDateString('pt-BR');
+                const diaEntrada = formatarDataInput(formData.get('diaEntrada'));
+                const dataPagamentoRestante = formatarDataInput(formData.get('dataPagamentoRestante'));
                 
                 previewHtml += `
                     <div class="preview-section">
@@ -903,10 +924,6 @@
                 const percentualEntrada = ((valorEntrada / valorTotal) * 100).toFixed(0);
                 
                 // Formatar datas
-                const dataInicio = new Date(formData.get('dataInicio'));
-                const dataFim = new Date(formData.get('dataFim'));
-                const diaEntrada = new Date(formData.get('diaEntrada'));
-                const dataPagamentoRestante = new Date(formData.get('dataPagamentoRestante'));
                 const hoje = new Date();
                 
                 // Obter horários
@@ -981,11 +998,11 @@ OBJETO DO CONTRATO:
 O presente contrato tem por objeto a locação, para fins de temporada, do imóvel rural denominado Chácara Amora, localizado em ÁREA SÍTIO AMORA, S/N. Zona Rural de Caconde-SP, de propriedade do(a) LOCADOR(A).
 
 PERÍODO DE LOCAÇÃO:
-Data de entrada: ${dataInicio.toLocaleDateString('pt-BR')} às ${horaEntrada}
-Data de saída: ${dataFim.toLocaleDateString('pt-BR')} às ${horaSaida}
+Data de entrada: ${formatarDataInput(formData.get('dataInicio'))} às ${horaEntrada}
+Data de saída: ${formatarDataInput(formData.get('dataFim'))} às ${horaSaida}
 
 VALOR DO ALUGUEL:
-O valor total da locação é de ${formatarValorPorExtenso(valorTotal)}, a ser pago da seguinte forma: ${percentualEntrada}% do valor até o dia ${diaEntrada.toLocaleDateString('pt-BR')} e o restante no dia ${dataPagamentoRestante.toLocaleDateString('pt-BR')}.
+O valor total da locação é de ${formatarValorPorExtenso(valorTotal)}, a ser pago da seguinte forma: ${percentualEntrada}% do valor até o dia ${formatarDataInput(formData.get('diaEntrada'))} e o restante no dia ${formatarDataInput(formData.get('dataPagamentoRestante'))}.
 
 CLÁUSULAS CONTRATUAIS
 
@@ -1001,13 +1018,13 @@ CLÁUSULA 3 – RESCISÃO
 3.1. Em caso de desistência por parte do LOCATÁRIO, deverá ser feita com antecedência mínima de 20 dias. Após esse prazo, não haverá devolução do valor pago.
 
 CLÁUSULA 4 – HORÁRIOS DE ENTRADA E SAÍDA
-4.1. Conforme acordo entre as partes, o locatário poderá dar entrada na acomodação no dia ${dataInicio.toLocaleDateString('pt-BR')} a partir das ${horaEntrada}, enquanto sua saída deverá ocorrer até as ${horaSaida} do dia ${dataFim.toLocaleDateString('pt-BR')}.
+4.1. Conforme acordo entre as partes, o locatário poderá dar entrada na acomodação no dia ${formatarDataInput(formData.get('dataInicio'))} a partir das ${horaEntrada}, enquanto sua saída deverá ocorrer até as ${horaSaida} do dia ${formatarDataInput(formData.get('dataFim'))}.
 
 CLÁUSULA 5 – FORO
 5.1. Para dirimir quaisquer controvérsias oriundas do presente contrato, as partes elegem o foro da comarca de Caconde/SP, com renúncia a qualquer outro, por mais privilegiado que seja.
 
 ${formData.get('observacoes') ? `OBSERVAÇÕES ADICIONAIS\n${formData.get('observacoes')}\n\n` : ''}
-Caconde/SP, ${hoje.toLocaleDateString('pt-BR')}.`;
+Caconde/SP, ${formatarDataAtual()}.`;
                 
                 // Simular processo de geração
                 setTimeout(() => {
@@ -1255,13 +1272,13 @@ Caconde/SP, ${hoje.toLocaleDateString('pt-BR')}.`;
     
     <div class="secao">
         <div class="secao-titulo">PERÍODO DE LOCAÇÃO:</div>
-        Data de entrada: ${dataInicio.toLocaleDateString('pt-BR')} às ${horaEntrada}<br>
-        Data de saída: ${dataFim.toLocaleDateString('pt-BR')} às ${horaSaida}
+        Data de entrada: ${formatarDataInput(formData.get('dataInicio'))} às ${horaEntrada}<br>
+        Data de saída: ${formatarDataInput(formData.get('dataFim'))} às ${horaSaida}
     </div>
     
     <div class="secao">
         <div class="secao-titulo">VALOR DO ALUGUEL:</div>
-        O valor total da locação é de ${formatarValorPorExtenso(valorTotal)}, a ser pago da seguinte forma: ${percentualEntrada}% do valor até o dia ${diaEntrada.toLocaleDateString('pt-BR')} e o restante no dia ${dataPagamentoRestante.toLocaleDateString('pt-BR')}.
+        O valor total da locação é de ${formatarValorPorExtenso(valorTotal)}, a ser pago da seguinte forma: ${percentualEntrada}% do valor até o dia ${formatarDataInput(formData.get('diaEntrada'))} e o restante no dia ${formatarDataInput(formData.get('dataPagamentoRestante'))}.
     </div>
     
     <div class="secao">
@@ -1286,7 +1303,7 @@ Caconde/SP, ${hoje.toLocaleDateString('pt-BR')}.`;
         
         <div class="clausula">
             <div class="clausula-titulo">CLÁUSULA 4 – HORÁRIOS DE ENTRADA E SAÍDA</div>
-            4.1. Conforme acordo entre as partes, o locatário poderá dar entrada na acomodação no dia ${dataInicio.toLocaleDateString('pt-BR')} a partir das ${horaEntrada}, enquanto sua saída deverá ocorrer até as ${horaSaida} do dia ${dataFim.toLocaleDateString('pt-BR')}.
+            4.1. Conforme acordo entre as partes, o locatário poderá dar entrada na acomodação no dia ${formatarDataInput(formData.get('dataInicio'))} a partir das ${horaEntrada}, enquanto sua saída deverá ocorrer até as ${horaSaida} do dia ${formatarDataInput(formData.get('dataFim'))}.
         </div>
         
         <div class="clausula">
@@ -1302,7 +1319,7 @@ Caconde/SP, ${hoje.toLocaleDateString('pt-BR')}.`;
     </div>
     
     <div class="secao" style="text-align: center; margin-top: 30px;">
-        Caconde/SP, ${hoje.toLocaleDateString('pt-BR')}.
+        Caconde/SP, ${formatarDataAtual()}.
     </div>
     
     <div class="assinaturas">
